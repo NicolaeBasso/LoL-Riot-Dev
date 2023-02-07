@@ -9,6 +9,7 @@ import {
   CacheInterceptor,
   CacheTTL,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { SummonersService } from './summoners.service';
 import { CreateSummonerDto } from './dto/create-summoner.dto';
@@ -20,33 +21,13 @@ import { SummonerDto } from './dto/summoner.dto';
 
 @Controller('summoners')
 export class SummonersController {
-  constructor(
-    private readonly summonersService: SummonersService,
-    private readonly configService: ConfigService,
-    private readonly httpService: HttpService,
-  ) {}
+  constructor(private readonly summonersService: SummonersService) {}
 
   @UseInterceptors(CacheInterceptor)
-  @CacheTTL(30000)
+  @CacheTTL(5)
   @Get('account')
-  async getSummonerAccount(@Body() summonerDto) {
-    return this.summonersService.getSummonerAccount(summonerDto);
-
-    // const { name, region }: { name: string; region: REGION } = summonerDto;
-
-    // const riotApiBaseUrl = this.configService.get<string>('RIOT_LOL_API_URL');
-    // const riotApiKey = this.configService.get<string>('RIOT_API_KEY');
-    // const url = `https://${region}.${riotApiBaseUrl}/summoner/v4/summoners/by-name/${name}`;
-
-    // console.log({ riotApiBaseUrl, riotApiKey, url });
-
-    // const res = await this.httpService.axiosRef.get(url, {
-    //   headers: { 'X-Riot-Token': riotApiKey },
-    // });
-
-    // console.log('Summoner = ', res?.data);
-
-    // return res?.data || 'Summoner not found';
+  async getSummonerAccount(@Query() query: SummonerDto) {
+    return this.summonersService.getSummonerAccount(query);
   }
 
   @Get('profile')

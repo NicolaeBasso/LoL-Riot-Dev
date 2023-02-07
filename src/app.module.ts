@@ -1,4 +1,6 @@
-import { Module, CacheModule } from '@nestjs/common';
+import type { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-store';
+import { CacheModule, CacheStore, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -31,12 +33,23 @@ import { MatchesModule } from './matches/matches.module';
         POSTGRES_PASSWORD: Joi.string().required(),
         POSTGRES_DB: Joi.string().required(),
         PORT: Joi.number(),
-        REDIS_HOST: Joi.string().required(),
-        REDIS_PORT: Joi.number().required(),
+        REDIS_URL: Joi.string().required(),
+        CACHE_TTL: Joi.number().required(),
         RESOURCE_URL: Joi.string(),
       }),
     }),
-    CacheModule.register({ isGlobal: true }),
+    CacheModule.registerAsync<RedisClientOptions>({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        // ttl: configService.get<number>('CACHE_TTL'),
+        ttl: 5,
+        store: (await redisStore({
+          url: configService.get('REDIS_URL'),
+        })) as unknown as CacheStore,
+      }),
+      inject: [ConfigService],
+    }),
     DatabaseModule,
     SummonersModule,
     MatchesModule,

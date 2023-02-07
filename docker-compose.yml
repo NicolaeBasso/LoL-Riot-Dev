@@ -30,13 +30,13 @@ services:
     image: "redis:alpine"
     container_name: lol-redis
     ports:
-      - "6379:6379"
+      - "6479:6379"
 
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: lol-redis-commander
     ports:
-      - "8081:8081"
+      - "8181:8081"
     environment:
       - REDIS_HOSTS=local:redis:6379
     depends_on:

@@ -27,11 +27,11 @@ export class SummonersService {
   async getSummonerAccount(summonerDto: SummonerDto) {
     const { name, region }: { name: string; region: REGION } = summonerDto;
 
-    // const riotApiBaseUrl = this.configService.get<string>('RIOT_LOL_API_URL');
-    // const riotApiKey = this.configService.get<string>('RIOT_API_KEY');
+    const riotApiBaseUrl = this.configService.get<string>('RIOT_LOL_API_URL');
+    const riotApiKey = this.configService.get<string>('RIOT_API_KEY');
     const url = `https://${region}.${this.riotApiBaseUrl}/summoner/v4/summoners/by-name/${name}`;
 
-    // console.log({ riotApiBaseUrl, riotApiKey, url });
+    console.log({ riotApiBaseUrl, riotApiKey, url });
 
     const res = await this.httpService.axiosRef.get(url, {
       headers: { 'X-Riot-Token': this.riotApiKey },
@@ -41,7 +41,7 @@ export class SummonersService {
 
     console.log('Summoner = ', res?.data);
 
-    await this.cacheService.set(id, summoner);
+    await this.cacheService.set(id, summoner, 5);
     const cachedData = await this.cacheService.get(id);
     console.log('data set to cache', cachedData);
 
