@@ -4,9 +4,10 @@ import { SummonersController } from './summoners.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Summoner } from './entities/summoner.entity';
 import { ConfigModule } from '@nestjs/config';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [ConfigModule, TypeOrmModule.forFeature([Summoner])],
+  imports: [ConfigModule, TypeOrmModule.forFeature([Summoner]), HttpModule],
   controllers: [SummonersController],
   providers: [SummonersService],
 })
