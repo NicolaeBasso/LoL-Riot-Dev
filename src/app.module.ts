@@ -1,6 +1,7 @@
 import type { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-store';
 import { CacheModule, CacheStore, Module } from '@nestjs/common';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -8,6 +9,7 @@ import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
 import { SummonersModule } from './summoners/summoners.module';
 import { MatchesModule } from './matches/matches.module';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -42,13 +44,20 @@ import { MatchesModule } from './matches/matches.module';
       isGlobal: true,
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
+        // since latest cache-manager-ioredis release
+        // broke proper arg transmission, like ttl & etc,
+        // check workaround at store prop below
         // ttl: configService.get<number>('CACHE_TTL'),
-        ttl: 5,
+        // max: 500,
         store: (await redisStore({
+          ttl: configService.get<number>('CACHE_TTL'),
           url: configService.get('REDIS_URL'),
         })) as unknown as CacheStore,
       }),
       inject: [ConfigService],
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
     }),
     DatabaseModule,
     SummonersModule,

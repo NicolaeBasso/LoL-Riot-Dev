@@ -1,11 +1,23 @@
 import { HttpService } from '@nestjs/axios';
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  HttpException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
-import { REGION } from 'src/utils/constants';
+import {
+  REGION,
+  REGION_MAPPING,
+  TIER_RANKING,
+  RANK_RANKING,
+} from 'src/utils/constants';
 import { Repository } from 'typeorm';
 import { CreateSummonerDto } from './dto/create-summoner.dto';
+import { MatchDto } from './dto/match.dto';
+import { MatchIdListDto } from './dto/matchIDList.dto';
 import { SummonerDto } from './dto/summoner.dto';
 import { UpdateSummonerDto } from './dto/update-summoner.dto';
 import { Summoner } from './entities/summoner.entity';
@@ -16,7 +28,7 @@ export class SummonersService {
     @InjectRepository(Summoner)
     private readonly summonerRepository: Repository<Summoner>,
     @Inject(CACHE_MANAGER)
-    private cacheService: Cache,
+    private readonly cacheService: Cache,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
   ) {}
@@ -24,52 +36,143 @@ export class SummonersService {
   riotApiBaseUrl = this.configService.get<string>('RIOT_LOL_API_URL');
   riotApiKey = this.configService.get<string>('RIOT_API_KEY');
 
-  async getSummonerAccount(summonerDto: SummonerDto) {
-    const { name, region }: { name: string; region: REGION } = summonerDto;
+  async getSummonerAccount(summonerDto: SummonerDto): Promise<Summoner> {
+    const { name, region }: SummonerDto = summonerDto;
 
-    const riotApiBaseUrl = this.configService.get<string>('RIOT_LOL_API_URL');
-    const riotApiKey = this.configService.get<string>('RIOT_API_KEY');
+    const cachedData: Summoner = await this.cacheService.get(
+      `${region}.${name}`,
+    );
+    if (cachedData) return cachedData;
+
     const url = `https://${region}.${this.riotApiBaseUrl}/summoner/v4/summoners/by-name/${name}`;
+    const res = await this.httpService.axiosRef
+      .get(url, {
+        headers: { 'X-Riot-Token': this.riotApiKey },
+      })
+      .catch((reason) => {
+        throw new HttpException(reason?.message, 404);
+      });
+    const summoner: Summoner = res?.data;
 
-    console.log({ riotApiBaseUrl, riotApiKey, url });
+    if (summoner) {
+      this.cacheService.set(`${region}.${name}`, summoner);
+      return summoner;
+    }
 
+    throw new HttpException('Summoner not found', 404);
+  }
+
+  async getSummonerProfile(summonerDto: SummonerDto): Promise<any> {
+    const { name, region }: SummonerDto = summonerDto;
+
+    const summoner: Summoner = await this.getSummonerAccount(summonerDto);
+    const { id: summonerId } = summoner;
+
+    const url = `https://${region}.${this.riotApiBaseUrl}/league/v4/entries/by-summoner/${summonerId}`;
     const res = await this.httpService.axiosRef.get(url, {
       headers: { 'X-Riot-Token': this.riotApiKey },
     });
-    const summoner = res?.data || null;
-    const id = summoner?.id;
-
-    console.log('Summoner = ', res?.data);
-
-    await this.cacheService.set(id, summoner, 5);
-    const cachedData = await this.cacheService.get(id);
-    console.log('data set to cache', cachedData);
 
     return res?.data ?? 'Summoner not found';
   }
 
-  async getSummonerProfile(summonerDto: SummonerDto) {
-    const { name, region }: { name: string; region: REGION } = summonerDto;
-    const summonerId = '123';
+  async getSummonerMatchIdList(matchIdListDto: MatchIdListDto): Promise<any> {
+    const {
+      name,
+      region,
+      startTime,
+      endTime,
+      queue,
+      type,
+      start,
+      count,
+    }: MatchIdListDto = matchIdListDto;
+    const regionCluster = REGION_MAPPING[region];
 
-    // const summoner =
+    const summoner: Summoner = await this.getSummonerAccount({ name, region });
 
-    // https://developer.riotgames.com/apis#league-v4/GET_getLeagueEntriesForSummoner
-    // https://na1.api.riotgames.com/lol/league/v4/entries/by-summoner/LSFXu0iAleeSoiVJx8Ym6uJVWZ-uHSNUNuLnMoPtigxpwhc?api_key=RGAPI-491ebe2f-e67d-4ef7-a1d0-7c4bbadd47a4
+    const { id: summonerId, puuid } = summoner;
 
-    // const riotApiBaseUrl = this.configService.get<string>('RIOT_LOL_API_URL');
-    // const riotApiKey = this.configService.get<string>('RIOT_API_KEY');
-    const url = `https://${region}.${this.riotApiBaseUrl}/league/v4/entries/by-summoner/${summonerId}?api_key=${this.riotApiKey}`;
+    let queryParams = '';
+    if (startTime) queryParams += `&startTime=${startTime}`;
+    if (endTime) queryParams += `&endTime=${endTime}`;
+    if (queue) queryParams += `&queue=${queue}`;
+    if (type) queryParams += `&type=${type}`;
+    if (start) queryParams += `&start=${start}`;
+    if (count) queryParams += `&count=${count}`;
 
-    // console.log({ riotApiBaseUrl, riotApiKey, url });
+    const url = `https://${regionCluster}.${this.riotApiBaseUrl}/match/v5/matches/by-puuid/${puuid}/ids?${queryParams}`;
 
     const res = await this.httpService.axiosRef.get(url, {
       headers: { 'X-Riot-Token': this.riotApiKey },
     });
+    const matchList = res?.data;
 
-    console.log('Summoner = ', res?.data);
+    return matchList ?? 'Match list not found';
+  }
 
-    return res?.data ?? 'Summoner not found';
+  async getSummonerMatches(matchIdListDto: MatchIdListDto): Promise<any> {
+    const matchIds = await this.getSummonerMatchIdList(matchIdListDto);
+
+    const {
+      name,
+      region,
+      startTime,
+      endTime,
+      queue,
+      type,
+      start,
+      count,
+    }: MatchIdListDto = matchIdListDto;
+    const regionCluster = REGION_MAPPING[region];
+
+    const summoner: Summoner = await this.getSummonerAccount({ name, region });
+
+    const { id: summonerId, puuid } = summoner;
+
+    const matches = await Promise.all(
+      matchIds.map(async (matchId) => {
+        const url = `https://${regionCluster}.${this.riotApiBaseUrl}/match/v5/matches/${matchId}`;
+        return (
+          await this.httpService.axiosRef.get(url, {
+            headers: { 'X-Riot-Token': this.riotApiKey },
+          })
+        ).data;
+      }),
+    );
+
+    return matches ?? 'Matches not found';
+  }
+
+  async getMatchLeaderboard(matchIdListDto: MatchIdListDto): Promise<any> {
+    const game = (await this.getSummonerMatches(matchIdListDto))?.[0];
+    const region = game?.info?.platformId.toLowerCase();
+
+    const playerProfiles = await Promise.all(
+      game?.info?.participants?.map((player) => {
+        const name = player?.summonerName;
+        return this.getSummonerProfile({ name, region });
+      }),
+    );
+
+    const leaderboard = playerProfiles
+      .map((player) => {
+        const { summonerName, tier, rank, leaguePoints } = player;
+        return { summonerName, tier, rank, leaguePoints };
+      })
+      .sort((a, b) => {
+        if (TIER_RANKING[a.tier] > TIER_RANKING[b.tier]) return 1;
+        if (TIER_RANKING[a.tier] < TIER_RANKING[b.tier]) return -1;
+
+        if (TIER_RANKING[a.tier] === TIER_RANKING[b.tier])
+          return RANK_RANKING[a.rank] - RANK_RANKING[b.rank]
+            ? RANK_RANKING[a.rank] - RANK_RANKING[b.rank]
+            : a.leaguePoints - b.leaguePoints;
+
+        return 1;
+      });
+
+    return leaderboard ?? 'Match not found';
   }
 
   create(createSummonerDto: CreateSummonerDto) {

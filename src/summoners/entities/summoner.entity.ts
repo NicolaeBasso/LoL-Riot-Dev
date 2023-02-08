@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryColumn } from 'typeorm';
 @Entity()
 export class Summoner {
   @PrimaryColumn()
-  public id: string;
+  id: string;
 
   @Column()
   accountId: string;

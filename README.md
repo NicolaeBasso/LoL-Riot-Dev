@@ -27,10 +27,11 @@
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Installation
-
+### To run the app with all deps (npm packages installed, docker services run, node app start):
 ```bash
-$ npm install
+npm run startup
 ```
+(under the hood - npm i && docker compose up -d && npm run dev)
 
 ## Running the app
 
