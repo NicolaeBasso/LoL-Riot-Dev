@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "89c35a76-4dc4-45cb-b5a0-eb3f356bc02e",
-		"name": "Void",
+		"name": "LoL",
 		"description": "League of Legends API integration for a cross-gaming social network",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "14020293"
@@ -165,7 +165,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/matches?name=TTV LegitKorea&region=na1&startTime&endTime&queue=&type=&start=0&count=5",
+							"raw": "localhost:7777/summoners/matches?name=TTV LegitKorea&region=na1&queue=420&start=0&count=5&startTime&endTime&type=",
 							"host": [
 								"localhost"
 							],
@@ -184,20 +184,8 @@
 									"value": "na1"
 								},
 								{
-									"key": "startTime",
-									"value": null
-								},
-								{
-									"key": "endTime",
-									"value": null
-								},
-								{
 									"key": "queue",
-									"value": ""
-								},
-								{
-									"key": "type",
-									"value": ""
+									"value": "420"
 								},
 								{
 									"key": "start",
@@ -206,6 +194,18 @@
 								{
 									"key": "count",
 									"value": "5"
+								},
+								{
+									"key": "startTime",
+									"value": null
+								},
+								{
+									"key": "endTime",
+									"value": null
+								},
+								{
+									"key": "type",
+									"value": ""
 								}
 							]
 						}
@@ -213,12 +213,12 @@
 					"response": []
 				},
 				{
-					"name": "TODO: Leaderboard (single)",
+					"name": "Leaderboard (single)",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/leaderboard?name=TTV LegitKorea&region=na1&start=0&count=1",
+							"raw": "localhost:7777/summoners/leaderboard?name=TTV LegitKorea&region=na1&start=0&count=1&queueType=RANKED_SOLO_5x5",
 							"host": [
 								"localhost"
 							],
@@ -263,6 +263,10 @@
 								{
 									"key": "count",
 									"value": "1"
+								},
+								{
+									"key": "queueType",
+									"value": "RANKED_SOLO_5x5"
 								}
 							]
 						}
