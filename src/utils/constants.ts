@@ -79,3 +79,9 @@ export const RANK_RANKING = {
   IV: 2,
   V: 1,
 };
+
+export const QUEUE_TYPE = {
+  RANKED_SOLO_5x5: 'RANKED_SOLO_5x5',
+  RANKED_FLEX_SR: 'RANKED_FLEX_SR',
+  RANKED_TFT_DOUBLE_UP: 'RANKED_TFT_DOUBLE_UP',
+};

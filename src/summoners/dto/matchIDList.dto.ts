@@ -7,4 +7,5 @@ export class MatchIdListDto extends SummonerDto {
   type: string;
   start: number;
   count: number;
+  queueType?: string;
 }

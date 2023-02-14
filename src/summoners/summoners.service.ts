@@ -13,6 +13,7 @@ import {
   REGION_MAPPING,
   TIER_RANKING,
   RANK_RANKING,
+  QUEUE_TYPE,
 } from 'src/utils/constants';
 import { Repository } from 'typeorm';
 import { CreateSummonerDto } from './dto/create-summoner.dto';
@@ -21,6 +22,7 @@ import { MatchIdListDto } from './dto/matchIDList.dto';
 import { SummonerDto } from './dto/summoner.dto';
 import { UpdateSummonerDto } from './dto/update-summoner.dto';
 import { Summoner } from './entities/summoner.entity';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class SummonersService {
@@ -114,21 +116,8 @@ export class SummonersService {
   async getSummonerMatches(matchIdListDto: MatchIdListDto): Promise<any> {
     const matchIds = await this.getSummonerMatchIdList(matchIdListDto);
 
-    const {
-      name,
-      region,
-      startTime,
-      endTime,
-      queue,
-      type,
-      start,
-      count,
-    }: MatchIdListDto = matchIdListDto;
+    const { region }: MatchIdListDto = matchIdListDto;
     const regionCluster = REGION_MAPPING[region];
-
-    const summoner: Summoner = await this.getSummonerAccount({ name, region });
-
-    const { id: summonerId, puuid } = summoner;
 
     const matches = await Promise.all(
       matchIds.map(async (matchId) => {
@@ -146,6 +135,18 @@ export class SummonersService {
 
   async getMatchLeaderboard(matchIdListDto: MatchIdListDto): Promise<any> {
     const game = (await this.getSummonerMatches(matchIdListDto))?.[0];
+    const queueType = matchIdListDto?.queueType ?? QUEUE_TYPE.RANKED_SOLO_5x5;
+    const { matchId } = game?.metadata;
+
+    const {
+      gameStartTimestamp: gameStartUNIX,
+      gameEndTimestamp: gameEndUNIX,
+      gameDuration,
+      platformId,
+      gameMode,
+    } = game?.info;
+    const gameStart = DateTime.fromMillis(gameStartUNIX).toISO();
+    const gameEnd = DateTime.fromMillis(gameEndUNIX).toISO();
     const region = game?.info?.platformId.toLowerCase();
 
     const playerProfiles = await Promise.all(
@@ -155,24 +156,36 @@ export class SummonersService {
       }),
     );
 
-    const leaderboard = playerProfiles
-      .map((player) => {
-        const { summonerName, tier, rank, leaguePoints } = player;
-        return { summonerName, tier, rank, leaguePoints };
-      })
+    const matchLeaderboard: Record<string, any> = playerProfiles
+      .map((profile) => profile.find((queue) => queue.queueType === queueType))
+      .filter((queue) => queue)
       .sort((a, b) => {
         if (TIER_RANKING[a.tier] > TIER_RANKING[b.tier]) return 1;
+
         if (TIER_RANKING[a.tier] < TIER_RANKING[b.tier]) return -1;
 
-        if (TIER_RANKING[a.tier] === TIER_RANKING[b.tier])
-          return RANK_RANKING[a.rank] - RANK_RANKING[b.rank]
-            ? RANK_RANKING[a.rank] - RANK_RANKING[b.rank]
-            : a.leaguePoints - b.leaguePoints;
+        if (TIER_RANKING[a.tier] === TIER_RANKING[b.tier]) {
+          if (RANK_RANKING[a.rank] > RANK_RANKING[b.rank]) return 1;
+          if (RANK_RANKING[a.rank] < RANK_RANKING[b.rank]) return -1;
 
-        return 1;
-      });
+          return a.leaguePoints - b.leaguePoints;
+        }
 
-    return leaderboard ?? 'Match not found';
+        return 0;
+      })
+      .reverse();
+
+    return (
+      {
+        matchId,
+        gameMode,
+        gameDuration: new Date(gameDuration * 1000).getMinutes(),
+        gameStartTimestamp: gameStart,
+        gameEndTimestamp: gameEnd,
+        platformId,
+        matchLeaderboard,
+      } ?? 'Match not found'
+    );
   }
 
   create(createSummonerDto: CreateSummonerDto) {
