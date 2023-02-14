@@ -7,7 +7,7 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { DatabaseModule } from './database/database.module';
-import { SummonersModule } from './summoners/summoners.module';
+import { SummonersModule } from './summoners/summoner.module';
 import { MatchesModule } from './matches/matches.module';
 import { join } from 'path';
 

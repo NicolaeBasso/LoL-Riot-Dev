@@ -19,38 +19,38 @@ import { CreateSummonerDto } from './dto/create-summoner.dto';
 import { MatchIdListDto } from './dto/matchIDList.dto';
 import { SummonerDto } from './dto/summoner.dto';
 import { UpdateSummonerDto } from './dto/update-summoner.dto';
-import { SummonersService } from './summoners.service';
+import { SummonerService } from './summoner.service';
 
-@Controller('summoners')
-export class SummonersController {
-  constructor(private readonly summonersService: SummonersService) {}
+@Controller('summoner')
+export class SummonerController {
+  constructor(private readonly summonerService: SummonerService) {}
 
   // default in-memory automated caching, redis cache is being used instead
   // @UseInterceptors(CacheInterceptor)
   // @CacheTTL(30)
   @Get('account')
   async getSummonerAccount(@Query() query: SummonerDto) {
-    return this.summonersService.getSummonerAccount(query);
+    return this.summonerService.getSummonerAccount(query);
   }
 
   @Get('profile')
   async getSummonerProfile(@Query() query: SummonerDto) {
-    return this.summonersService.getSummonerProfile(query);
+    return this.summonerService.getSummonerProfile(query);
   }
 
   @Get('matchIDList')
   async getSummonerMatchIDList(@Query() query: MatchIdListDto) {
-    return this.summonersService.getSummonerMatchIdList(query);
+    return this.summonerService.getSummonerMatchIdList(query);
   }
 
   @Get('matches')
   async getSummonerMatches(@Query() query: MatchIdListDto) {
-    return this.summonersService.getSummonerMatches(query);
+    return this.summonerService.getSummonerMatches(query);
   }
 
   @Get('leaderboard')
   async getMatchLeaderboard(@Query() query: MatchIdListDto) {
-    return this.summonersService.getMatchLeaderboard(query);
+    return this.summonerService.getMatchLeaderboard(query);
   }
 
   @Get('rankImage')
@@ -79,17 +79,17 @@ export class SummonersController {
 
   @Post()
   create(@Body() createSummonerDto: CreateSummonerDto) {
-    return this.summonersService.create(createSummonerDto);
+    return this.summonerService.create(createSummonerDto);
   }
 
-  @Get()
+  @Get('db/account/all')
   findAll() {
-    return this.summonersService.findAll();
+    return this.summonerService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.summonersService.findOne(+id);
+  @Get('db/account')
+  findOne(@Query() query: SummonerDto) {
+    return this.summonerService.findOneByNameInDB(query);
   }
 
   @Patch(':id')
@@ -97,11 +97,16 @@ export class SummonersController {
     @Param('id') id: string,
     @Body() updateSummonerDto: UpdateSummonerDto,
   ) {
-    return this.summonersService.update(+id, updateSummonerDto);
+    return this.summonerService.update(+id, updateSummonerDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.summonersService.remove(+id);
+    return this.summonerService.remove(+id);
+  }
+
+  @Delete('db/account/all')
+  removeAll() {
+    return this.summonerService.removeAll();
   }
 }

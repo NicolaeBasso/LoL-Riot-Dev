@@ -16,13 +16,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/account?name=TTV LegitKorea&region=na1",
+							"raw": "localhost:7777/summoner/account?name=TTV LegitKorea&region=na1",
 							"host": [
 								"localhost"
 							],
 							"port": "7777",
 							"path": [
-								"summoners",
+								"summoner",
 								"account"
 							],
 							"query": [
@@ -45,13 +45,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/profile?name=TTV LegitKorea&region=na1",
+							"raw": "localhost:7777/summoner/profile?name=TTV LegitKorea&region=na1",
 							"host": [
 								"localhost"
 							],
 							"port": "7777",
 							"path": [
-								"summoners",
+								"summoner",
 								"profile"
 							],
 							"query": [
@@ -74,13 +74,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/matchIDList?name=TTV LegitKorea&region=na1&startTime&endTime&queue=&type=&start=2&count=5",
+							"raw": "localhost:7777/summoner/matchIDList?name=TTV LegitKorea&region=na1&startTime&endTime&queue=&type=&start=2&count=5",
 							"host": [
 								"localhost"
 							],
 							"port": "7777",
 							"path": [
-								"summoners",
+								"summoner",
 								"matchIDList"
 							],
 							"query": [
@@ -127,13 +127,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/rankImage?name=TTV LegitKorea&region=na1&queueType=RANKED_SOLO_5x5",
+							"raw": "localhost:7777/summoner/rankImage?name=TTV LegitKorea&region=na1&queueType=RANKED_SOLO_5x5",
 							"host": [
 								"localhost"
 							],
 							"port": "7777",
 							"path": [
-								"summoners",
+								"summoner",
 								"rankImage"
 							],
 							"query": [
@@ -165,13 +165,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/matches?name=TTV LegitKorea&region=na1&queue=420&start=0&count=5&startTime&endTime&type=",
+							"raw": "localhost:7777/summoner/matches?name=TTV LegitKorea&region=na1&queue=420&start=0&count=5&startTime&endTime&type=",
 							"host": [
 								"localhost"
 							],
 							"port": "7777",
 							"path": [
-								"summoners",
+								"summoner",
 								"matches"
 							],
 							"query": [
@@ -218,13 +218,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "localhost:7777/summoners/leaderboard?name=TTV LegitKorea&region=na1&start=0&count=1&queueType=RANKED_SOLO_5x5",
+							"raw": "localhost:7777/summoner/leaderboard?name=TTV LegitKorea&region=na1&start=0&count=1&queueType=RANKED_SOLO_5x5",
 							"host": [
 								"localhost"
 							],
 							"port": "7777",
 							"path": [
-								"summoners",
+								"summoner",
 								"leaderboard"
 							],
 							"query": [
@@ -268,6 +268,83 @@
 									"key": "queueType",
 									"value": "RANKED_SOLO_5x5"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "DB",
+			"item": [
+				{
+					"name": "Summoner account",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:7777/summoner/db/account?name=TTV LegitKorea&region=na1",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"summoner",
+								"db",
+								"account"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "TTV LegitKorea"
+								},
+								{
+									"key": "region",
+									"value": "na1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All summoners",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:7777/summoner/db/account/all",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"summoner",
+								"db",
+								"account",
+								"all"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all summoners",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:7777/summoner/db/account/all",
+							"host": [
+								"localhost"
+							],
+							"port": "7777",
+							"path": [
+								"summoner",
+								"db",
+								"account",
+								"all"
 							]
 						}
 					},
