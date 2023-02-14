@@ -25,7 +25,7 @@ import { Summoner } from './entities/summoner.entity';
 import { DateTime } from 'luxon';
 
 @Injectable()
-export class SummonersService {
+export class SummonerService {
   constructor(
     @InjectRepository(Summoner)
     private readonly summonerRepository: Repository<Summoner>,
@@ -64,13 +64,28 @@ export class SummonersService {
     throw new HttpException('Summoner not found', 404);
   }
 
+  async findOneByNameInDB(summonerDto: SummonerDto): Promise<Summoner> {
+    const { name, region } = summonerDto;
+    return this.summonerRepository.findOne({
+      where: { name },
+    });
+  }
+
   async getSummonerProfile(summonerDto: SummonerDto): Promise<any> {
     const { name, region }: SummonerDto = summonerDto;
 
-    const summoner: Summoner = await this.getSummonerAccount(summonerDto);
-    const { id: summonerId } = summoner;
+    // const summoner = this.summonerRepository.findOne();
 
-    const url = `https://${region}.${this.riotApiBaseUrl}/league/v4/entries/by-summoner/${summonerId}`;
+    const summoner: Summoner = await this.getSummonerAccount(summonerDto);
+    const { id, accountId } = summoner;
+
+    const dbSummoner = await this.summonerRepository.findOne({ where: { id } });
+    if (!dbSummoner) {
+      const dbSummonerCreated = await this.summonerRepository.create(summoner);
+      await this.summonerRepository.save(dbSummonerCreated);
+    }
+
+    const url = `https://${region}.${this.riotApiBaseUrl}/league/v4/entries/by-summoner/${id}`;
     const res = await this.httpService.axiosRef.get(url, {
       headers: { 'X-Riot-Token': this.riotApiKey },
     });
@@ -192,8 +207,8 @@ export class SummonersService {
     return 'This action adds a new summoner';
   }
 
-  findAll() {
-    return `This action returns all summoners`;
+  findAll(): Promise<Summoner[]> {
+    return this.summonerRepository.find({});
   }
 
   findOne(id: number) {
@@ -206,5 +221,9 @@ export class SummonersService {
 
   remove(id: number) {
     return `This action removes a #${id} summoner`;
+  }
+
+  removeAll() {
+    return this.summonerRepository.delete({});
   }
 }

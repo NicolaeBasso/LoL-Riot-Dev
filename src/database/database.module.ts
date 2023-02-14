@@ -18,7 +18,8 @@ import { Summoner } from 'src/summoners/entities/summoner.entity';
         password: configService.get('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_DB'),
         entities: [Summoner],
-        synchronize: true,
+        synchronize:
+          configService.get<string>('ENV') === 'DEVELOPMENT' ? true : false,
         autoLoadEntities: true,
       }),
     }),

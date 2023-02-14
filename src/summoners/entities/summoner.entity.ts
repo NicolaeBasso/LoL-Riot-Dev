@@ -5,10 +5,10 @@ export class Summoner {
   @PrimaryColumn()
   id: string;
 
-  @Column()
+  @Column({ unique: true })
   accountId: string;
 
-  @Column()
+  @Column({ unique: true })
   puuid: string;
 
   @Column()
@@ -17,7 +17,7 @@ export class Summoner {
   @Column()
   profileIconId: number;
 
-  @Column()
+  @Column({ type: 'bigint' })
   revisionDate: number;
 
   @Column()
